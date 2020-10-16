@@ -1,54 +1,45 @@
 package golang
 
 import (
+	"bufio"
+	"fmt"
 	"io/ioutil"
-	"log"
-	"os"
 	"os/exec"
-	"path/filepath"
 	"strings"
 
-	"github.com/lwh9346/WhaleJudger/judge"
+	"github.com/lwh9346/WhaleJudger/docker"
 
 	"github.com/lwh9346/WhaleJudger/iohelper"
 )
 
-const imageName = "golang:1.15.2"
-
-func compile(containerName string) {
-	_, err := containerExec(containerName, "go build -o /root/test.out /root/main.go")
-	if err != nil {
-		log.Printf("编译错误\n")
+func compile(containerName string) string {
+	out, _ := containerExec(containerName, "go build -o /root/test.out /root/main.go")
+	if out != "" {
+		out = fmt.Sprintf("CE:编译错误\n错误信息：\n%s", out)
 	}
-}
-
-func createContainer(containerName string) {
-	cwd, _ := filepath.Abs(filepath.Dir(os.Args[0]))
-	createContainerCMD := exec.Command("docker", "run", "-id", "--name="+containerName, "--net=none", "-v", cwd+"/docker/"+containerName+"/sandbox:/root", imageName)
-	err := createContainerCMD.Run()
-	if err != nil {
-		//Docker error
-	}
+	return out
 }
 
 func setUpEnvironmen(containerName, sourceCode string) {
 	iohelper.WriteStringToFile("./docker/"+containerName+"/sandbox/main.go", sourceCode)
 }
 
-func containerExec(containerName string, command string) ([]byte, error) {
+func containerExec(containerName string, command string) (string, error) {
 	args := append([]string{"exec", "-i", containerName}, strings.Split(command, " ")...)
 	cmd := exec.Command("docker", args...)
-	out, err := cmd.Output()
-	return out, err
+	stderrpipe, err := cmd.StderrPipe()
+	reader := bufio.NewReader(stderrpipe)
+	cmd.Start()
+	outb, _ := ioutil.ReadAll(reader)
+	cmd.Wait()
+	return string(outb), err
 }
 
-//Debug 调试用
-func Debug(containerName string) {
-	createContainer(containerName)
-	code, _ := ioutil.ReadFile("./main.go")
-	setUpEnvironmen(containerName, string(code))
-	compile(containerName)
-	//out, _ := containerExec(containerName, "/root/test.out")
-	outstr, _ := judge.SingleCase(containerName, "hello\n", "hello", []string{"/root/test.out"})
-	log.Println(outstr)
+//Prepare 进行测试前的各种准备，包括创建容器及编译，返回编译错误信息（如果有）以及测试时的启动参数
+func Prepare(sourceCode, containerName string) (errInfo string, runArgs []string) {
+	docker.CreateContainer(containerName, "golang:1.15.2")
+	setUpEnvironmen(containerName, sourceCode)
+	errInfo = compile(containerName)
+	runArgs = []string{"/root/test.out"}
+	return
 }

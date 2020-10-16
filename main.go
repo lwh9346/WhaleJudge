@@ -1,7 +1,13 @@
 package main
 
 import (
+	"io/ioutil"
+	"log"
 	"os"
+
+	"github.com/lwh9346/WhaleJudger/judge"
+
+	"github.com/lwh9346/WhaleJudger/docker"
 
 	"github.com/lwh9346/WhaleJudger/lang/golang"
 )
@@ -15,8 +21,20 @@ func main() {
 	case "init":
 		//init
 	case "test":
-		golang.Debug("codingTest")
+		debug("codingTest")
 	default:
 		//default
 	}
+}
+
+func debug(name string) {
+	docker.CreateContainer(name, "golang:1.15.2")
+	sourceCode, _ := ioutil.ReadFile("./main.go")
+	errInfo, runArgs := golang.Prepare(string(sourceCode), name)
+	if errInfo != "" {
+		log.Println(errInfo)
+		return
+	}
+	output, _ := judge.SingleCase(name, "23 14\n", "37", runArgs)
+	log.Println(output)
 }
