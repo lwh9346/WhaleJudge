@@ -20,4 +20,5 @@ func KillAndRemoveContainer(containerName string) {
 	cmd.Run()
 	cmd = exec.Command("docker", "rm", containerName)
 	cmd.Run()
+	os.RemoveAll("./docker/" + containerName)
 }

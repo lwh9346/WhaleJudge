@@ -1,14 +1,15 @@
 package httpserver
 
 import (
+	"context"
 	"log"
-
-	"github.com/lwh9346/WhaleJudger/judge"
-
-	"github.com/lwh9346/WhaleJudger/docker"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/lwh9346/WhaleJudger/lang/golang"
 )
 
 //JudgeRequest 一个测评请求
@@ -32,51 +33,12 @@ type JudgeResponse struct {
 //StartHTTPServer 启动代码执行服务器
 func StartHTTPServer() {
 	r := gin.Default()
-	r.POST("/judge", handleJudgeRequest)
-	r.Run()
-}
 
-func handleJudgeRequest(c *gin.Context) {
-	var request JudgeRequest
-	var response JudgeResponse
-	if c.BindJSON(&request) != nil {
-		c.JSON(400, gin.H{"err": "请求格式不正确"})
-		return
-	}
-	containerName := getContainerName() //这只是测试用的，正式服务器里面需要获取一个唯一的名称
-	var errInfo string
-	var args []string //程序运行的参数，这个描述其实不准确，因为程序名也包含在里面
-	switch request.Language {
-	case "go":
-		errInfo, args = golang.Prepare(request.SourceCode, containerName)
-		defer docker.KillAndRemoveContainer(containerName)
-	default:
-		c.JSON(400, gin.H{"err": "不支持的语言类型"})
-		return
-	}
-	if errInfo != "" {
-		response.Msg = []string{errInfo}
-		response.Code = judge.CompileError
-		c.JSON(200, response)
-		return
-	}
-	input, stdOutput := getInputAndOutputByQuestionName(request.QuestionName)
-	if len(input) != len(stdOutput) {
-		log.Printf("严重错误：题目问题数与答案数不相等\n题目名称：%s\n", request.QuestionName)
-		c.JSON(400, gin.H{"err": "服务器故障：题目错误"})
-		return
-	}
-	for k := range input {
-		output, code := judge.SingleCase(containerName, input[k], stdOutput[k], args)
-		response.Msg = append(response.Msg, output)
-		if code != judge.Pass {
-			response.Code = code
-			c.JSON(200, response)
-			return
-		}
-	}
-	c.JSON(200, response)
-	return
+	//添加服务
+	r.POST("/judge", handleJudgeRequest)
+
+	//r.Run()
+	run(r)
 }
 
 //getInputAndOutputByQuestionName 目前是这样，测试用
@@ -88,4 +50,23 @@ func getInputAndOutputByQuestionName(questionName string) (input []string, outpu
 
 func getContainerName() string {
 	return "codingTest"
+}
+
+func run(r *gin.Engine) {
+	srv := &http.Server{Handler: r, Addr: "0.0.0.0:8080"}
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("listen: %s\n", err)
+		}
+	}()
+	quit := make(chan os.Signal)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+	log.Println("Shutting down server...")
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Fatal("Server forced to shutdown:", err)
+	}
+	log.Println("Server exiting")
 }
