@@ -1,9 +1,11 @@
 package golang
 
 import (
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 
 	"github.com/lwh9346/WhaleJudger/iohelper"
 )
@@ -11,31 +13,32 @@ import (
 const imageName = "golang:1.15.2"
 
 func compile(containerName string) {
-	containerExec(containerName, "cd /root && go build -o test.out")
+	containerExec(containerName, "go build -o /root/test.out /root/main.go")
 }
 
 func createContainer(containerName string) {
-	cwd := filepath.Dir(os.Args[0])
-	createContainerCMD := exec.Command("docker", "run", "-id", "--name=\""+containerName+"\"", "--net=none", "-v", cwd+"/docker/"+containerName+"/sandbox:/root", imageName)
+	cwd, _ := filepath.Abs(filepath.Dir(os.Args[0]))
+	createContainerCMD := exec.Command("docker", "run", "-id", "--name="+containerName, "--net=none", "-v", cwd+"/docker/"+containerName+"/sandbox:/root", imageName)
 	err := createContainerCMD.Run()
 	if err != nil {
 		//Docker error
 	}
 }
 
-func setUpEnvironmen(containerName string) {
-	containerExec(containerName, "cd /root && go mod init test")
-	iohelper.CopyFile("./main.go", "./docker/"+containerName+"/sandbox/main.go")
+func setUpEnvironmen(containerName, sourceCode string) {
+	iohelper.WriteStringToFile("./docker/"+containerName+"/sandbox/main.go", sourceCode)
 }
 
 func containerExec(containerName string, command string) error {
-	cmd := exec.Command("docker", "exec", "-i", containerName, command)
+	args := append([]string{"exec", "-i", containerName}, strings.Split(command, " ")...)
+	cmd := exec.Command("docker", args...)
 	return cmd.Run()
 }
 
 //Debug 调试用
 func Debug(containerName string) {
 	createContainer(containerName)
-	setUpEnvironmen(containerName)
+	code, _ := ioutil.ReadFile("./main.go")
+	setUpEnvironmen(containerName, string(code))
 	compile(containerName)
 }
