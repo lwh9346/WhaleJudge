@@ -1,9 +1,12 @@
 package main
 
 import (
+	"encoding/json"
 	"io/ioutil"
 	"log"
 	"os"
+
+	"github.com/lwh9346/WhaleJudger/httpserver"
 
 	"github.com/lwh9346/WhaleJudger/judge"
 
@@ -14,7 +17,7 @@ import (
 
 func main() {
 	if len(os.Args) == 1 {
-		//RunHttpServer
+		httpserver.StartHTTPServer()
 		return
 	}
 	switch os.Args[1] {
@@ -30,6 +33,9 @@ func main() {
 func debug(name string) {
 	docker.CreateContainer(name, "golang:1.15.2")
 	sourceCode, _ := ioutil.ReadFile("./main.go")
+	req := httpserver.JudgeRequest{SourceCode: string(sourceCode), Language: "go", QuestionName: "silly question"}
+	b, _ := json.Marshal(req)
+	ioutil.WriteFile("./test.json", b, 0666)
 	errInfo, runArgs := golang.Prepare(string(sourceCode), name)
 	if errInfo != "" {
 		log.Println(errInfo)

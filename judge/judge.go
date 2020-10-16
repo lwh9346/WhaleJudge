@@ -16,6 +16,8 @@ const (
 	TimeOut
 	//ProgramError 程序执行错误
 	ProgramError
+	//CompileError 编译错误
+	CompileError
 )
 
 //SingleCase 返回值中0表示pass,1表示wa,2表示timeout,3表示error

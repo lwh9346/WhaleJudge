@@ -13,3 +13,11 @@ func CreateContainer(containerName, imageName string) error {
 	err := createContainerCMD.Run()
 	return err
 }
+
+//KillAndRemoveContainer 杀死并删除一个Docker容器
+func KillAndRemoveContainer(containerName string) {
+	cmd := exec.Command("docker", "kill", containerName)
+	cmd.Run()
+	cmd = exec.Command("docker", "rm", containerName)
+	cmd.Run()
+}
