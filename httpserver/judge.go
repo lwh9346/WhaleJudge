@@ -1,6 +1,7 @@
 package httpserver
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/gin-gonic/gin"
@@ -34,9 +35,12 @@ func handleJudgeRequest(c *gin.Context) {
 		return
 	}
 	input, stdOutput := getInputAndOutputByQuestionName(request.QuestionName)
+	if len(input) == 0 {
+		c.JSON(404, gin.H{"err": fmt.Sprintf("找不到题目：%s", request.QuestionName)})
+	}
 	if len(input) != len(stdOutput) {
 		log.Printf("严重错误：题目问题数与答案数不相等\n题目名称：%s\n", request.QuestionName)
-		c.JSON(400, gin.H{"err": "服务器故障：题目错误"})
+		c.JSON(400, gin.H{"err": "服务器故障，题目错误，请联系管理员"})
 		return
 	}
 	for k := range input {
