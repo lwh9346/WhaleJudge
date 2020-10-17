@@ -35,7 +35,22 @@ func StartHTTPServer() {
 	r := gin.Default()
 
 	//添加服务
-	r.POST("/judge", handleJudgeRequest)
+	//测评部分
+	r.POST("/judge", handleJudgeRequest) //程序评测
+	//用户部分
+	r.POST("/register", handleRegisterRequest)          //注册
+	r.POST("/login", handleLoginRequest)                //登录
+	r.POST("/userinfo/get", handleUserInfoRequest)      //用户信息查询
+	r.POST("/userinfo/edit", handleEditUserInfoRequest) //用户信息修改
+	//课程部分
+	r.POST("/course/get", handleCourseInfoRequest)        //课程信息查询
+	r.POST("/course/addteacher", handleAddTeacherRequest) //课程添加教师
+	r.POST("/course/join", handleJoinCourseRequest)       //加入课程
+	r.POST("/course/exit", handleExitCourseRequest)       //退出课程
+	//问题部分
+	r.POST("/question/get", handleQuestionInfoRequest)      //问题信息查询
+	r.POST("/question/edit", handleEditQuestionRequest)     //问题信息修改
+	r.POST("/question/remove", handleRemoveQuestionRequest) //问题删除
 
 	//r.Run()
 	run(r)
