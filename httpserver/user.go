@@ -19,3 +19,7 @@ func handleRegisterRequest(c *gin.Context) {
 func handleLoginRequest(c *gin.Context) {
 
 }
+
+func handleEditPasswordRequest(c *gin.Context) {
+
+}

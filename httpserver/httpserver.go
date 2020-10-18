@@ -38,10 +38,11 @@ func StartHTTPServer() {
 	//测评部分
 	r.POST("/judge", handleJudgeRequest) //程序评测
 	//用户部分
-	r.POST("/register", handleRegisterRequest)          //注册
-	r.POST("/login", handleLoginRequest)                //登录
-	r.POST("/userinfo/get", handleUserInfoRequest)      //用户信息查询
-	r.POST("/userinfo/edit", handleEditUserInfoRequest) //用户信息修改
+	r.POST("/user/register", handleRegisterRequest)         //注册
+	r.POST("/user/login", handleLoginRequest)               //登录
+	r.POST("/user/info/get", handleUserInfoRequest)         //用户信息查询
+	r.POST("/user/info/edit", handleEditUserInfoRequest)    //用户信息修改
+	r.POST("/user/editpassword", handleEditPasswordRequest) //更改密码
 	//课程部分
 	r.POST("/course/get", handleCourseInfoRequest)        //课程信息查询
 	r.POST("/course/addteacher", handleAddTeacherRequest) //课程添加教师
@@ -54,13 +55,6 @@ func StartHTTPServer() {
 
 	//r.Run()
 	run(r)
-}
-
-//getInputAndOutputByQuestionName 目前是这样，测试用
-func getInputAndOutputByQuestionName(questionName string) (input []string, output []string) {
-	input = []string{"hello\n"}
-	output = []string{"hello"}
-	return
 }
 
 func getContainerName() string {
