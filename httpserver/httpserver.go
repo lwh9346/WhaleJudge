@@ -9,6 +9,8 @@ import (
 	"syscall"
 	"time"
 
+	uuid "github.com/satori/go.uuid"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -57,8 +59,9 @@ func StartHTTPServer() {
 	run(r)
 }
 
-func getContainerName() string {
-	return "codingTest"
+//GetContainerName 返回一个可用的容器名称（uuid）
+func GetContainerName() string {
+	return uuid.NewV4().String()
 }
 
 func run(r *gin.Engine) {

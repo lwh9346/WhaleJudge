@@ -17,7 +17,7 @@ func handleJudgeRequest(c *gin.Context) {
 		c.JSON(400, gin.H{"err": "请求格式不正确"})
 		return
 	}
-	containerName := getContainerName() //这只是测试用的，正式服务器里面需要获取一个唯一的名称
+	containerName := GetContainerName()
 	var errInfo string
 	var args []string //程序运行的参数，这个描述其实不准确，因为程序名也包含在里面
 	switch request.Language {

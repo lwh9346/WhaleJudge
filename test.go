@@ -18,7 +18,7 @@ import (
 
 //测试docker的容器创建、代码编译运行以及容器销毁功能
 func dockerBasicFunctionTest() {
-	name := "codingTest"
+	name := httpserver.GetContainerName()
 	docker.CreateContainer(name, "golang:1.15.2")
 	sourceCode, _ := ioutil.ReadFile("./main.go")
 	req := httpserver.JudgeRequest{SourceCode: string(sourceCode), Language: "go", QuestionName: "silly question"}
