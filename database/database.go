@@ -8,16 +8,19 @@ import (
 
 //HasKey 返回一个k-v型bucket是否含有某个key
 func HasKey(db *nutsdb.DB, bucket, key string) bool {
-	var l int
-	if err := db.View(
+	err := db.View(
 		func(tx *nutsdb.Tx) error {
-			e, err1 := tx.RangeScan(bucket, []byte(key), []byte(key))
-			l = len(e)
+			_, err1 := tx.Get(bucket, []byte(key))
 			return err1
-		}); err != nil {
+		})
+	if err == nil {
+		return true
+	}
+	if err == nutsdb.ErrKeyNotFound {
 		return false
 	}
-	return l > 0
+	log.Fatal(err)
+	return false
 }
 
 //SetValue 设置k-v型bucket的键值
