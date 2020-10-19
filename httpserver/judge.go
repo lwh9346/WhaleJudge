@@ -28,6 +28,7 @@ type JudgeResponse struct {
 	Code int `json:"code"`
 }
 
+//TODO:修改返回值风格，加入用户校验
 func handleJudgeRequest(c *gin.Context) {
 	var request JudgeRequest
 	var response JudgeResponse
