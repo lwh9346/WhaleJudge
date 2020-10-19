@@ -2,10 +2,12 @@ package httpserver
 
 import (
 	"encoding/json"
+	"log"
 	"strings"
 	"unicode"
 
 	"github.com/lwh9346/WhaleJudger/database"
+	uuid "github.com/satori/go.uuid"
 
 	"github.com/gin-gonic/gin"
 )
@@ -100,8 +102,41 @@ func handleRegisterRequest(c *gin.Context) {
 	c.JSON(200, regResponse)
 }
 
-func handleLoginRequest(c *gin.Context) {
+//LoginRequest 登录请求
+type LoginRequest struct {
+	Username string `json:"username" binding:"required"`
+	Password string `json:"password" binding:"required"`
+}
 
+//LoginResponse 登陆请求返回值，返回一个在一天内有效的token用于后续身份验证
+type LoginResponse struct {
+	Msg   string `json:"msg"`
+	Code  int    `json:"code"`
+	Token string `json:"token"`
+}
+
+func handleLoginRequest(c *gin.Context) {
+	var logRequest LoginRequest
+	if c.BindJSON(&logRequest) != nil {
+		c.JSON(400, gin.H{"msg": "请求格式不正确", "code": 1})
+		return
+	}
+	if !database.HasKey(userDB, usernamePasswordBK, logRequest.Username) {
+		c.JSON(401, gin.H{"code": 1, "msg": "用户名不存在"})
+		return
+	}
+	if string(database.GetValue(userDB, usernamePasswordBK, logRequest.Username)) != logRequest.Password {
+		c.JSON(401, gin.H{"code": 1, "msg": "密码不正确"})
+		log.Println(database.GetValue(userDB, usernamePasswordBK, logRequest.Username))
+		return
+	}
+	token := uuid.NewV4().String()
+	database.SetValue(userDB, tokenUsernameBK, token, []byte(logRequest.Username), 3600*24)
+	var logResponse LoginResponse
+	logResponse.Code = 0
+	logResponse.Msg = "登陆成功"
+	logResponse.Token = token
+	c.JSON(200, logResponse)
 }
 
 func handleEditPasswordRequest(c *gin.Context) {
