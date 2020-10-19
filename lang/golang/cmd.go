@@ -37,7 +37,7 @@ func containerExec(containerName string, command string) (string, error) {
 
 //Prepare 进行测试前的各种准备，包括创建容器及编译，返回编译错误信息（如果有）以及测试时的启动参数
 func Prepare(sourceCode, containerName string) (errInfo string, runArgs []string) {
-	docker.CreateContainer(containerName, "golang:1.15.2")
+	docker.CreateContainer(containerName, "golang:1.15.2-alpine")
 	setUpEnvironmen(containerName, sourceCode)
 	errInfo = compile(containerName)
 	runArgs = []string{"/root/test.out"}
