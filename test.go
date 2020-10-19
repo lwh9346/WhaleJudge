@@ -62,6 +62,16 @@ func dataBaseBasicFunctionTest() {
 		log.Fatal(err)
 	}
 	log.Println(string(vRead))
+	if err = db.View(
+		func(tx *nutsdb.Tx) error {
+			e, err1 := tx.RangeScan(bucket, k, k)
+			vRead = e[0].Value
+			log.Printf("%v\n", e)
+			return err1
+		}); err != nil {
+		log.Fatal(err)
+	}
+	log.Println(string(vRead))
 	db.Close()
 	err = os.RemoveAll("./db/test")
 }
