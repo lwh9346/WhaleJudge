@@ -13,14 +13,7 @@ func HasKey(db *nutsdb.DB, bucket, key string) bool {
 			_, err1 := tx.Get(bucket, []byte(key))
 			return err1
 		})
-	if err == nil {
-		return true
-	}
-	if err == nutsdb.ErrKeyNotFound {
-		return false
-	}
-	log.Fatal(err)
-	return false
+	return err == nil
 }
 
 //SetValue 设置k-v型bucket的键值
