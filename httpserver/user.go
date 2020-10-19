@@ -2,7 +2,6 @@ package httpserver
 
 import (
 	"encoding/json"
-	"log"
 	"strings"
 	"unicode"
 
@@ -31,7 +30,7 @@ func handleUserInfoRequest(c *gin.Context) {
 		return
 	}
 	if !database.HasKey(userDB, usernameUserInfoBK, uir.Username) {
-		c.JSON(400, gin.H{})
+		c.JSON(404, gin.H{})
 		return
 	}
 	var ui UserInfo
@@ -67,27 +66,16 @@ type RegisterRequest struct {
 	Nickname string `json:"nickname" binding:"required"`
 }
 
-//RegisterResponse 注册用户的结果
-type RegisterResponse struct {
-	Msg  string `json:"msg"`
-	Code int    `json:"code"` //0成功，1失败
-}
-
 //handleRegisterRequest 处理注册用户的请求
 func handleRegisterRequest(c *gin.Context) {
 	var regRequest RegisterRequest
-	var regResponse RegisterResponse
 	if c.BindJSON(&regRequest) != nil {
-		regResponse.Code = 1
-		regResponse.Msg = "请求格式不正确"
-		c.JSON(400, regResponse)
+		c.JSON(400, gin.H{"code": 1, "msg": "请求格式不正确"})
 		return
 	}
 	//用户名合法性检验
 	if len(regRequest.Username) == 0 {
-		regResponse.Code = 1
-		regResponse.Msg = "没有填写用户名"
-		c.JSON(400, regResponse)
+		c.JSON(400, gin.H{"code": 1, "msg": "没有填写用户名"})
 		return
 	}
 	ok := true
@@ -95,30 +83,22 @@ func handleRegisterRequest(c *gin.Context) {
 		ok = ok && (unicode.IsLetter(r) || unicode.IsNumber(r)) //用户名只能为字母加数字
 	}
 	if !ok {
-		regResponse.Code = 1
-		regResponse.Msg = "用户名只能包含字母与数字"
-		c.JSON(400, regResponse)
+		c.JSON(400, gin.H{"code": 1, "msg": "用户名只能包含字母与数字"})
 		return
 	}
 	regRequest.Username = strings.ToLower(regRequest.Username) //不区分大小写
 	//查重
 	if database.HasKey(userDB, "userpass", regRequest.Username) {
-		regResponse.Code = 1
-		regResponse.Msg = "用户名已存在"
-		c.JSON(400, regResponse)
+		c.JSON(400, gin.H{"code": 1, "msg": "用户名已存在"})
 		return
 	}
 	//密码合法性检查
 	if regRequest.Password == "" {
-		regResponse.Code = 1
-		regResponse.Msg = "没有填写密码"
-		c.JSON(400, regResponse)
+		c.JSON(400, gin.H{"code": 1, "msg": "没有密码"})
 		return
 	}
 	if len([]rune(regRequest.Password)) < 8 {
-		regResponse.Code = 1
-		regResponse.Msg = "密码太短，至少要8位"
-		c.JSON(400, regResponse)
+		c.JSON(400, gin.H{"code": 1, "msg": "密码太短，至少要8位"})
 		return
 	}
 	//昵称检查
@@ -132,9 +112,7 @@ func handleRegisterRequest(c *gin.Context) {
 	uib, _ := json.Marshal(ui)
 	database.SetValue(userDB, usernameUserInfoBK, regRequest.Username, uib, 0)
 	//返回数据
-	regResponse.Code = 0
-	regResponse.Msg = "注册成功"
-	c.JSON(200, regResponse)
+	c.JSON(200, gin.H{"code": 0, "msg": "注册成功"})
 }
 
 //LoginRequest 登录请求
@@ -143,17 +121,10 @@ type LoginRequest struct {
 	Password string `json:"password" binding:"required"`
 }
 
-//LoginResponse 登陆请求返回值，返回一个在一天内有效的token用于后续身份验证
-type LoginResponse struct {
-	Msg   string `json:"msg"`
-	Code  int    `json:"code"`
-	Token string `json:"token"`
-}
-
 func handleLoginRequest(c *gin.Context) {
 	var logRequest LoginRequest
 	if c.BindJSON(&logRequest) != nil {
-		c.JSON(400, gin.H{"msg": "请求格式不正确", "code": 1})
+		c.JSON(400, gin.H{"code": 1, "msg": "请求格式不正确"})
 		return
 	}
 	if !database.HasKey(userDB, usernamePasswordBK, logRequest.Username) {
@@ -162,18 +133,38 @@ func handleLoginRequest(c *gin.Context) {
 	}
 	if string(database.GetValue(userDB, usernamePasswordBK, logRequest.Username)) != logRequest.Password {
 		c.JSON(401, gin.H{"code": 1, "msg": "密码不正确"})
-		log.Println(database.GetValue(userDB, usernamePasswordBK, logRequest.Username))
 		return
 	}
 	token := uuid.NewV4().String()
 	database.SetValue(userDB, tokenUsernameBK, token, []byte(logRequest.Username), 3600*24)
-	var logResponse LoginResponse
-	logResponse.Code = 0
-	logResponse.Msg = "登陆成功"
-	logResponse.Token = token
-	c.JSON(200, logResponse)
+	c.JSON(200, gin.H{"code": 0, "msg": "登陆成功", "token": token})
+}
+
+//EditPasswordRequest 修改密码的请求
+type EditPasswordRequest struct {
+	Username    string `json:"username" binding:"required"`
+	OldPassword string `json:"oldpassword" binding:"required"`
+	NewPassword string `json:"newpassword" binding:"required"`
 }
 
 func handleEditPasswordRequest(c *gin.Context) {
-
+	var epr EditPasswordRequest
+	if c.BindJSON(&epr) != nil {
+		c.JSON(400, gin.H{"code": 1, "msg": "请求格式不正确"})
+		return
+	}
+	if !database.HasKey(userDB, usernamePasswordBK, epr.Username) {
+		c.JSON(401, gin.H{"code": 1, "msg": "用户名不存在"})
+		return
+	}
+	if string(database.GetValue(userDB, usernamePasswordBK, epr.Username)) != epr.OldPassword {
+		c.JSON(401, gin.H{"code": 1, "msg": "密码不正确"})
+		return
+	}
+	if len([]rune(epr.NewPassword)) < 8 {
+		c.JSON(400, gin.H{"code": 1, "msg": "密码太短，至少要8位"})
+		return
+	}
+	database.SetValue(userDB, usernamePasswordBK, epr.Username, []byte(epr.NewPassword), 0)
+	c.JSON(200, gin.H{"code": 0, "msg": "密码修改成功"})
 }
