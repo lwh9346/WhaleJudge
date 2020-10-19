@@ -14,24 +14,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-//JudgeRequest 一个测评请求
-type JudgeRequest struct {
-	//Language 程序所使用的语言
-	Language string `json:"language" binding:"required"`
-	//SourceCode 程序源代码
-	SourceCode string `json:"sourcecode" binding:"required"`
-	//QuestionName 所回答的问题的名称（ID）
-	QuestionName string `json:"question" binding:"required"`
-}
-
-//JudgeResponse 测评结果
-type JudgeResponse struct {
-	//Msg 包含了每个case的信息，可以是错误信息也可以是其他信息
-	Msg []string `json:"msg"`
-	//Code 状态码，详见judge.go
-	Code int `json:"code"`
-}
-
 //StartHTTPServer 启动代码执行服务器
 func StartHTTPServer() {
 	r := gin.Default()
