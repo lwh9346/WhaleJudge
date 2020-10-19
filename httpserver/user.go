@@ -13,16 +13,51 @@ import (
 )
 
 //UserInfo 用户公开信息
+//TODO:已完成的题目列表，加入的班级等
 type UserInfo struct {
 	NickName string `json:"nickname"`
 }
 
-func handleUserInfoRequest(c *gin.Context) {
+//UserInfoRequest 用户的公开信息的请求（目前就一个）
+type UserInfoRequest struct {
+	Username string `json:"username" binding:"required"`
+}
 
+//handleUserInfoRequest 处理用户公开信息的请求
+func handleUserInfoRequest(c *gin.Context) {
+	var uir UserInfoRequest
+	if c.BindJSON(&uir) != nil {
+		c.JSON(400, gin.H{})
+		return
+	}
+	if !database.HasKey(userDB, usernameUserInfoBK, uir.Username) {
+		c.JSON(400, gin.H{})
+		return
+	}
+	var ui UserInfo
+	ui.NickName = string(database.GetValue(userDB, usernameUserInfoBK, uir.Username))
+	c.JSON(200, ui)
+}
+
+//EditUserInfoRequest 修改昵称的请求
+type EditUserInfoRequest struct {
+	Token       string `json:"token" binding:"required"`
+	NewNickname string `json:"nickname" binding:"required"`
 }
 
 func handleEditUserInfoRequest(c *gin.Context) {
-
+	var euir EditUserInfoRequest
+	if c.BindJSON(&euir) != nil {
+		c.JSON(400, gin.H{"code": 1, "msg": "请求格式不正确"})
+		return
+	}
+	if !database.HasKey(userDB, tokenUsernameBK, euir.Token) {
+		c.JSON(401, gin.H{"code": 1, "msg": "登陆失效，请重新登陆"})
+		return
+	}
+	username := string(database.GetValue(userDB, tokenUsernameBK, euir.Token))
+	database.SetValue(userDB, usernameUserInfoBK, username, []byte(euir.NewNickname), 0)
+	c.JSON(200, gin.H{"code": 0, "msg": "昵称修改成功"})
 }
 
 //RegisterRequest 注册用户的请求
