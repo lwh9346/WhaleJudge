@@ -9,6 +9,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/xujiajun/nutsdb"
+
 	uuid "github.com/satori/go.uuid"
 
 	"github.com/gin-gonic/gin"
@@ -16,6 +18,28 @@ import (
 
 //StartHTTPServer 启动代码执行服务器
 func StartHTTPServer() {
+	//初始化数据库
+	var dberr error
+	dbOption := nutsdb.DefaultOptions
+	dbOption.Dir = "./db/user"
+	userDB, dberr = nutsdb.Open(dbOption)
+	if dberr != nil {
+		log.Fatal(dberr)
+	}
+	defer userDB.Close()
+	dbOption.Dir = "./db/question"
+	questionDB, dberr = nutsdb.Open(dbOption)
+	if dberr != nil {
+		log.Fatal(dberr)
+	}
+	defer questionDB.Close()
+	dbOption.Dir = "./db/course"
+	courseDB, dberr = nutsdb.Open(dbOption)
+	if dberr != nil {
+		log.Fatal(dberr)
+	}
+	defer courseDB.Close()
+
 	r := gin.Default()
 
 	//添加服务

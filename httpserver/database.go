@@ -9,13 +9,11 @@ import (
 //下面是用户数据部分
 var userDB *nutsdb.DB //存放用户数据的数据库
 
-/*
-var usernamePasswordDB *nutsdb.DB        //用户名密码数据库
-var tokenUsernameDB *nutsdb.DB           //用于存储token的数据库
-var usernamePassedQuestionsDB *nutsdb.DB //记录某个用户已经PASS的题目的库，应该用Set结构
-var usernameCourseNamesDB *nutsdb.DB     //记录某个用户参加的课程的库，应该用Set结构
-var usernameUserInfoDB *nutsdb.DB        //用户数据，如昵称等的库
-*/
+const usernamePasswordBK = "userpass"            //用户名密码数据库
+const tokenUsernameBK = "tokenuser"              //用于存储token的数据库
+const usernamePassedQuestionsBK = "userquestion" //记录某个用户已经PASS的题目的库，应该用Set结构
+const usernameCourseNamesBK = "usercourse"       //记录某个用户参加的课程的库，应该用Set结构
+const usernameUserInfoBK = "userinfo"            //用户数据，如昵称等的库
 
 //下面是题目数据部分
 var questionDB *nutsdb.DB //存放题目数据的数据库
