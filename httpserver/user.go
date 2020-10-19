@@ -40,7 +40,7 @@ type RegisterResponse struct {
 func handleRegisterRequest(c *gin.Context) {
 	var regRequest RegisterRequest
 	var regResponse RegisterResponse
-	if c.BindJSON(regRequest) != nil {
+	if c.BindJSON(&regRequest) != nil {
 		regResponse.Code = 1
 		regResponse.Msg = "请求格式不正确"
 		c.JSON(400, regResponse)

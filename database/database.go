@@ -15,7 +15,7 @@ func HasKey(db *nutsdb.DB, bucket, key string) bool {
 			l = len(e)
 			return err1
 		}); err != nil {
-		log.Fatal(err)
+		return false
 	}
 	return l > 0
 }
