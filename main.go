@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"os"
 
 	"github.com/lwh9346/WhaleJudger/httpserver"
@@ -15,7 +16,15 @@ func main() {
 	case "init":
 		//init
 	case "test":
-		dataBaseBasicFunctionTest()
+		if len(os.Args) < 3 {
+			log.Fatalln("test命令没有足够的参数")
+		}
+		switch os.Args[2] {
+		case "docker":
+			dockerBasicFunctionTest()
+		case "database":
+			dataBaseBasicFunctionTest()
+		}
 	default:
 		//default
 	}
