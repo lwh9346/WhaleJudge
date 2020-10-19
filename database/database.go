@@ -19,3 +19,13 @@ func HasKey(db *nutsdb.DB, bucket, key string) bool {
 	}
 	return l > 0
 }
+
+//SetValue 设置k-v型bucket的键值
+func SetValue(db *nutsdb.DB, bucket, key string, value []byte, ttl uint32) {
+	if err := db.Update(
+		func(tx *nutsdb.Tx) error {
+			return tx.Put(bucket, []byte(key), value, ttl)
+		}); err != nil {
+		log.Fatal(err)
+	}
+}
