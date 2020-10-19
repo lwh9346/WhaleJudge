@@ -32,7 +32,7 @@ func GetValue(db *nutsdb.DB, bucket, key string) []byte {
 	err := db.View(
 		func(tx *nutsdb.Tx) error {
 			d, err1 := tx.Get(bucket, []byte(key))
-			if err1 != nil {
+			if err1 == nil {
 				data = d.Value
 			}
 			return err1
