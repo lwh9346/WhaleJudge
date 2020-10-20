@@ -42,3 +42,13 @@ func GetValue(db *nutsdb.DB, bucket, key string) []byte {
 	}
 	return data
 }
+
+//SAdd 向集合型bucket中添加元素
+func SAdd(db *nutsdb.DB, bucket, key string, value []byte) {
+	err := db.Update(func(tx *nutsdb.Tx) error {
+		return tx.SAdd(bucket, []byte(key), value)
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+}
