@@ -22,8 +22,25 @@ type QuestionInfo struct {
 	ExampleCases QuestionCases `json:"examplecases"`
 }
 
-func handleQuestionInfoRequest(c *gin.Context) {
+//QuestionInfoRequest 题目信息请求
+type QuestionInfoRequest struct {
+	QuestionName string `json:"questionname"`
+}
 
+func handleQuestionInfoRequest(c *gin.Context) {
+	var qir QuestionInfoRequest
+	if c.BindJSON(&qir) != nil {
+		c.JSON(400, gin.H{"code": 1, "msg": "请求格式不正确"})
+		return
+	}
+	if !database.HasKey(questionDB, questionDescriptionBK, qir.QuestionName) {
+		c.JSON(404, gin.H{"code": 1, "msg": "题目不存在"})
+		return
+	}
+	var qi QuestionInfo
+	data := database.GetValue(questionDB, questionDescriptionBK, qir.QuestionName)
+	json.Unmarshal(data, &qi)
+	c.JSON(200, gin.H{"code": 0, "msg": "查询成功", "info": qi})
 }
 
 //AddQuestionRequest 添加题目请求
