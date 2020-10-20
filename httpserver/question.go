@@ -26,10 +26,6 @@ func handleQuestionInfoRequest(c *gin.Context) {
 
 }
 
-func handleEditQuestionRequest(c *gin.Context) {
-
-}
-
 //AddQuestionRequest 添加题目请求
 type AddQuestionRequest struct {
 	Token        string        `json:"token" binding:"required"`

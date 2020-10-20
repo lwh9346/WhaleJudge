@@ -58,7 +58,6 @@ func StartHTTPServer() {
 	r.POST("/course/exit", handleExitCourseRequest)       //退出课程
 	//问题部分
 	r.POST("/question/get", handleQuestionInfoRequest)      //问题信息查询
-	r.POST("/question/edit", handleEditQuestionRequest)     //问题信息修改
 	r.POST("/question/add", handleAddQuestionRequest)       //添加问题
 	r.POST("/question/remove", handleRemoveQuestionRequest) //问题删除
 
