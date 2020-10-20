@@ -12,9 +12,11 @@ import (
 )
 
 //UserInfo 用户公开信息
-//TODO:已完成的题目列表，加入的班级等
+//TODO:加入的班级
 type UserInfo struct {
-	NickName string `json:"nickname"`
+	NickName         string   `json:"nickname"`
+	CreatedQuestions []string `json:"createdquestions"`
+	PassedQuestions  []string `json:"passedquestions"`
 }
 
 //UserInfoRequest 用户的公开信息的请求（目前就一个）
@@ -35,6 +37,25 @@ func handleUserInfoRequest(c *gin.Context) {
 	}
 	var ui UserInfo
 	ui.NickName = string(database.GetValue(userDB, usernameUserInfoBK, uir.Username))
+	createdQuestionRawData, ok := database.SAllMembers(userDB, usernameCreatedQuestionsBK, uir.Username)
+	if ok {
+		ui.CreatedQuestions = make([]string, len(createdQuestionRawData))
+		for k := range createdQuestionRawData {
+			ui.CreatedQuestions[k] = string(createdQuestionRawData[k])
+		}
+	}
+	passedQuestionRawData, ok := database.SAllMembers(userDB, usernamePassedQuestionsBK, uir.Username)
+	if ok {
+		ui.PassedQuestions = make([]string, 0, len(passedQuestionRawData))
+		for k := range passedQuestionRawData {
+			v := string(passedQuestionRawData[k])
+			if database.HasKey(questionDB, questionDescriptionBK, v) {
+				ui.PassedQuestions = append(ui.PassedQuestions, v)
+			} else {
+				database.SRemove(userDB, usernamePassedQuestionsBK, uir.Username, passedQuestionRawData[k])
+			}
+		}
+	}
 	c.JSON(200, ui)
 }
 

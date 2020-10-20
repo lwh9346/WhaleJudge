@@ -10,6 +10,8 @@ import (
 const (
 	//Pass 程序通过
 	Pass = iota
+	//ServerError 服务器错误
+	ServerError
 	//WrongAnswer 答案错误
 	WrongAnswer
 	//TimeOut 程序超时(1s)

@@ -66,13 +66,45 @@ func handleAddQuestionRequest(c *gin.Context) {
 	c.JSON(200, gin.H{"code": 0, "msg": "题目创建成功", "id": questionID})
 }
 
-func handleRemoveQuestionRequest(c *gin.Context) {
-
+//RemoveQuestionRequest 移除某问题的请求
+type RemoveQuestionRequest struct {
+	Token        string `json:"token" binding:"required"`
+	QuestionName string `json:"questionname" binding:"required"`
 }
 
-//getInputAndOutputByQuestionName 目前是这样，测试用
+func handleRemoveQuestionRequest(c *gin.Context) {
+	var rqr RemoveQuestionRequest
+	if c.BindJSON(&rqr) != nil {
+		c.JSON(400, gin.H{"code": 1, "msg": "请求格式不正确"})
+		return
+	}
+	if !database.HasKey(userDB, tokenUsernameBK, rqr.Token) {
+		c.JSON(401, gin.H{"code": 1, "msg": "登陆失效，请重新登陆"})
+		return
+	}
+	username := string(database.GetValue(userDB, tokenUsernameBK, rqr.Token))
+	if !database.SHasKey(userDB, usernameCreatedQuestionsBK, username) {
+		c.JSON(400, gin.H{"code": 1, "msg": "你没有删除该问题的权限"})
+		return
+	}
+	if !database.SIsMember(userDB, usernameCreatedQuestionsBK, username, []byte(rqr.QuestionName)) {
+		c.JSON(400, gin.H{"code": 1, "msg": "你没有删除该问题的权限"})
+	}
+	database.SRemove(userDB, usernameCreatedQuestionsBK, username, []byte(rqr.QuestionName))
+	database.RemoveKey(questionDB, questionCasesBK, rqr.QuestionName)
+	database.RemoveKey(questionDB, questionDescriptionBK, rqr.QuestionName)
+	c.JSON(200, gin.H{"code": 0, "msg": "删除成功"})
+}
+
+//getInputAndOutputByQuestionName 获取某个问题的输入输出
 func getInputAndOutputByQuestionName(questionName string) (input []string, output []string) {
-	input = []string{"hello\n"}
-	output = []string{"hello"}
+	if !database.HasKey(questionDB, questionCasesBK, questionName) {
+		return
+	}
+	data := database.GetValue(questionDB, questionCasesBK, questionName)
+	var questionCases QuestionCases
+	json.Unmarshal(data, &questionCases)
+	input = questionCases.Inputs
+	output = questionCases.Outputs
 	return
 }
