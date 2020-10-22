@@ -4,6 +4,24 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type Homework struct {
+	CreatTime int
+	Questions []string
+	Title     string
+}
+
+type CourseInfo struct {
+	Title       string
+	Description string
+	Homeworks   []Homework
+	Teachers    []string
+	Students    []string
+}
+
+func handleCreateCourseRequest(c *gin.Context) {
+
+}
+
 func handleCourseInfoRequest(c *gin.Context) {
 
 }

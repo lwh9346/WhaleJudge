@@ -52,6 +52,7 @@ func StartHTTPServer() {
 	r.POST("/user/info/edit", handleEditUserInfoRequest)    //用户信息修改
 	r.POST("/user/editpassword", handleEditPasswordRequest) //更改密码
 	//课程部分
+	r.POST("/course/create", handleCreateCourseRequest)   //创建新课程
 	r.POST("/course/get", handleCourseInfoRequest)        //课程信息查询
 	r.POST("/course/addteacher", handleAddTeacherRequest) //课程添加教师
 	r.POST("/course/join", handleJoinCourseRequest)       //加入课程
