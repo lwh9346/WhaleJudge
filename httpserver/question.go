@@ -5,7 +5,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/lwh9346/WhaleJudger/database"
-	uuid "github.com/satori/go.uuid"
 )
 
 //QuestionCases 题目数据集
@@ -62,6 +61,11 @@ func handleAddQuestionRequest(c *gin.Context) {
 		c.JSON(401, gin.H{"code": 1, "msg": "登陆失效，请重新登陆"})
 		return
 	}
+	questionName := aqr.Title
+	if database.HasKey(questionDB, questionDescriptionBK, questionName) {
+		c.JSON(400, gin.H{"code": 1, "msg": "该题目名已存在"})
+		return
+	}
 	username := string(database.GetValue(userDB, tokenUsernameBK, aqr.Token))
 	var qinfo QuestionInfo
 	var qcase QuestionCases
@@ -70,13 +74,12 @@ func handleAddQuestionRequest(c *gin.Context) {
 	qinfo.Owner = username
 	qinfo.Title = aqr.Title
 	qcase = aqr.Cases
-	questionID := uuid.NewV4().String()
 	qinfoData, _ := json.Marshal(qinfo)
 	qcaseData, _ := json.Marshal(qcase)
-	database.SetValue(questionDB, questionDescriptionBK, questionID, qinfoData, 0)
-	database.SetValue(questionDB, questionCasesBK, questionID, qcaseData, 0)
-	database.SAdd(userDB, usernameCreatedQuestionsBK, username, []byte(questionID))
-	c.JSON(200, gin.H{"code": 0, "msg": "题目创建成功", "id": questionID})
+	database.SetValue(questionDB, questionDescriptionBK, questionName, qinfoData, 0)
+	database.SetValue(questionDB, questionCasesBK, questionName, qcaseData, 0)
+	database.SAdd(userDB, usernameCreatedQuestionsBK, username, []byte(questionName))
+	c.JSON(200, gin.H{"code": 0, "msg": "题目创建成功", "name": questionName})
 }
 
 //RemoveQuestionRequest 移除某问题的请求
