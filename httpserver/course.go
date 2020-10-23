@@ -52,6 +52,7 @@ func handleCreateCourseRequest(c *gin.Context) {
 	ci := CourseInfo{Title: ccr.Title, Description: ccr.Description, Teachers: []string{username}}
 	data, _ := json.Marshal(ci)
 	database.SetValue(courseDB, courseInfoBK, ccr.Title, data, 0)
+	database.SAdd(userDB, usernameCourseNamesBK, username, []byte(ccr.Title))
 	c.JSON(200, gin.H{"code": 0, "msg": "课程创建成功"})
 }
 

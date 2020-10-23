@@ -17,6 +17,7 @@ type UserInfo struct {
 	NickName         string   `json:"nickname"`
 	CreatedQuestions []string `json:"createdquestions"`
 	PassedQuestions  []string `json:"passedquestions"`
+	Courses          []string `json:"courses"`
 }
 
 //UserInfoRequest 用户的公开信息的请求（目前就一个）
@@ -54,6 +55,13 @@ func handleUserInfoRequest(c *gin.Context) {
 			} else {
 				database.SRemove(userDB, usernamePassedQuestionsBK, uir.Username, passedQuestionRawData[k])
 			}
+		}
+	}
+	courses, ok := database.SAllMembers(userDB, usernameCourseNamesBK, uir.Username)
+	if ok {
+		ui.Courses = make([]string, len(courses))
+		for k := range courses {
+			ui.Courses[k] = string(courses[k])
 		}
 	}
 	c.JSON(200, ui)
