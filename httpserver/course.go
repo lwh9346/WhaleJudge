@@ -31,6 +31,8 @@ type CreateCourseRequest struct {
 }
 
 func handleCreateCourseRequest(c *gin.Context) {
+	courseInfoLock.Lock()
+	defer courseInfoLock.Unlock()
 	var ccr CreateCourseRequest
 	if c.BindJSON(&ccr) != nil {
 		c.JSON(400, gin.H{"msg": "请求格式不正确"})
@@ -85,6 +87,8 @@ type AddTeacherRequest struct {
 }
 
 func handleAddTeacherRequest(c *gin.Context) {
+	courseInfoLock.Lock()
+	defer courseInfoLock.Unlock()
 	var atr AddTeacherRequest
 	if c.BindJSON(&atr) != nil {
 		c.JSON(400, gin.H{"code": 1, "msg": "请求格式不正确"})
@@ -128,8 +132,54 @@ func handleAddTeacherRequest(c *gin.Context) {
 	return
 }
 
+//ExitCourseRequest 退出课程的请求
+type ExitCourseRequest struct {
+	Token      string `json:"token" binding:"required"`
+	CourseName string `json:"coursename" binding:"required"`
+}
+
 func handleExitCourseRequest(c *gin.Context) {
-	//课程中最后一名教师退出课程的时候将课程删除
+	courseInfoLock.Lock()
+	defer courseInfoLock.Unlock()
+	var ecr ExitCourseRequest
+	if c.BindJSON(&ecr) != nil {
+		c.JSON(400, gin.H{"code": 1, "msg": "请求格式不正确"})
+		return
+	}
+	if !database.HasKey(userDB, tokenUsernameBK, ecr.Token) {
+		c.JSON(401, gin.H{"code": 1, "msg": "登陆失效，请重新登陆"})
+		return
+	}
+	if !database.HasKey(courseDB, courseInfoBK, ecr.CourseName) {
+		c.JSON(404, gin.H{"code": 1, "msg": "找不到该课程"})
+		return
+	}
+	username := string(database.GetValue(userDB, tokenUsernameBK, ecr.Token))
+	ciData := database.GetValue(courseDB, courseInfoBK, ecr.CourseName)
+	var ci CourseInfo
+	json.Unmarshal(ciData, &ci)
+	iss, indexS := isStudentOfCourse(username, ci)
+	ist, indexT := isTeacherOfCourse(username, ci)
+	if !(iss || ist) {
+		c.JSON(400, gin.H{"code": 1, "msg": "你尚未加入该课程"})
+		return
+	}
+	if iss {
+		ci.Students = append(ci.Students[:indexS], ci.Students[indexS+1:]...)
+	}
+	if ist {
+		if len(ci.Teachers) == 1 {
+			//课程中最后一名教师退出课程的时候将课程删除
+			removeCourse(ci)
+			c.JSON(200, gin.H{"code": 0, "msg": "已退出该课程，由于你是该课程的唯一一名老师，该课程已删除"})
+			return
+		}
+		ci.Teachers = append(ci.Teachers[:indexT], ci.Teachers[indexT+1:]...)
+	}
+	ciData, _ = json.Marshal(ci)
+	database.SetValue(courseDB, courseInfoBK, ci.Title, ciData, 0)
+	database.SRemove(userDB, usernameCourseNamesBK, username, []byte(ci.Title))
+	c.JSON(200, gin.H{"code": 0, "msg": "已退出该课程"})
 }
 
 //JoinCourseRequest 加入课程的请求
@@ -139,6 +189,8 @@ type JoinCourseRequest struct {
 }
 
 func handleJoinCourseRequest(c *gin.Context) {
+	courseInfoLock.Lock()
+	defer courseInfoLock.Unlock()
 	var jcr JoinCourseRequest
 	if c.BindJSON(&jcr) != nil {
 		c.JSON(400, gin.H{"code": 1, "msg": "请求格式不正确"})
@@ -185,4 +237,14 @@ func isStudentOfCourse(username string, ci CourseInfo) (is bool, index int) {
 		}
 	}
 	return false, -1
+}
+
+func removeCourse(ci CourseInfo) {
+	for _, v := range ci.Students {
+		database.SRemove(userDB, usernameCourseNamesBK, v, []byte(ci.Title))
+	}
+	for _, v := range ci.Teachers {
+		database.SRemove(userDB, usernameCourseNamesBK, v, []byte(ci.Title))
+	}
+	database.RemoveKey(courseDB, courseInfoBK, ci.Title)
 }

@@ -1,6 +1,8 @@
 package httpserver
 
 import (
+	"sync"
+
 	"github.com/xujiajun/nutsdb"
 )
 
@@ -30,3 +32,4 @@ const (
 var courseDB *nutsdb.DB //存放课程数据的数据库
 
 const courseInfoBK = "courseInfo" //课程所有信息的数据库
+var courseInfoLock sync.Mutex     //课程信息修改的锁
