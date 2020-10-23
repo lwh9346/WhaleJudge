@@ -29,8 +29,4 @@ const (
 //下面是课程数据部分
 var courseDB *nutsdb.DB //存放课程数据的数据库
 
-/*
-var courseDescriptionDB *nutsdb.DB //课程简介的数据库
-var courseTeachersDB *nutsdb.DB    //记录课程教师的数据库，一般来说教师较少，不用Set结构
-var courseStudentsDB *nutsdb.DB    //记录参与课程的学生的数据库，使用Set结构
-*/
+const courseInfoBK = "courseInfo" //课程所有信息的数据库
