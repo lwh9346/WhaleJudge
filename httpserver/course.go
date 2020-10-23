@@ -68,7 +68,7 @@ func handleCourseInfoRequest(c *gin.Context) {
 		return
 	}
 	if !database.HasKey(courseDB, courseInfoBK, cir.CourseName) {
-		c.JSON(404, gin.H{"code": 1, "msg": "找不到该题目"})
+		c.JSON(404, gin.H{"code": 1, "msg": "找不到该课程"})
 		return
 	}
 	data := database.GetValue(courseDB, courseInfoBK, cir.CourseName)
@@ -77,8 +77,55 @@ func handleCourseInfoRequest(c *gin.Context) {
 	c.JSON(200, ci)
 }
 
-func handleAddTeacherRequest(c *gin.Context) {
+//AddTeacherRequest 添加教师的请求
+type AddTeacherRequest struct {
+	CourseName string `json:"coursename" binding:"required"`
+	Token      string `json:"token" binding:"required"`
+	UserToAdd  string `json:"usertoadd" binding:"required"`
+}
 
+func handleAddTeacherRequest(c *gin.Context) {
+	var atr AddTeacherRequest
+	if c.BindJSON(&atr) != nil {
+		c.JSON(400, gin.H{"code": 1, "msg": "请求格式不正确"})
+		return
+	}
+	if !database.HasKey(userDB, tokenUsernameBK, atr.Token) {
+		c.JSON(401, gin.H{"code": 1, "msg": "登陆失效，请重新登陆"})
+		return
+	}
+	if !database.HasKey(courseDB, courseInfoBK, atr.CourseName) {
+		c.JSON(404, gin.H{"code": 1, "msg": "找不到该课程"})
+		return
+	}
+	username := string(database.GetValue(userDB, tokenUsernameBK, atr.Token))
+	ciData := database.GetValue(courseDB, courseInfoBK, atr.CourseName)
+	var ci CourseInfo
+	json.Unmarshal(ciData, &ci)
+	permitted, _ := isTeacherOfCourse(username, ci)
+	if !permitted {
+		c.JSON(401, gin.H{"code": 1, "msg": "你没有修改该课程的权限"})
+		return
+	}
+	//至此鉴权完毕
+	if !database.HasKey(userDB, usernameUserInfoBK, atr.UserToAdd) {
+		c.JSON(400, gin.H{"code": 1, "msg": "你要添加的用户不存在"})
+		return
+	}
+	if is, _ := isTeacherOfCourse(atr.UserToAdd, ci); is {
+		c.JSON(400, gin.H{"code": 1, "msg": "你要添加的用户已经是课程教师了"})
+		return
+	}
+	if is, k := isStudentOfCourse(atr.UserToAdd, ci); is {
+		ci.Students = append(ci.Students[:k], ci.Students[k+1:]...)
+	} else {
+		database.SAdd(userDB, usernameCourseNamesBK, atr.UserToAdd, []byte(ci.Title))
+	}
+	ci.Teachers = append(ci.Teachers, atr.UserToAdd)
+	ciData, _ = json.Marshal(ci)
+	database.SetValue(courseDB, courseInfoBK, ci.Title, ciData, 0)
+	c.JSON(200, gin.H{"code": 0, "msg": "添加成功"})
+	return
 }
 
 func handleExitCourseRequest(c *gin.Context) {
@@ -87,4 +134,22 @@ func handleExitCourseRequest(c *gin.Context) {
 
 func handleJoinCourseRequest(c *gin.Context) {
 
+}
+
+func isTeacherOfCourse(username string, ci CourseInfo) (is bool, index int) {
+	for k, v := range ci.Teachers {
+		if v == username {
+			return true, k
+		}
+	}
+	return false, -1
+}
+
+func isStudentOfCourse(username string, ci CourseInfo) (is bool, index int) {
+	for k, v := range ci.Students {
+		if v == username {
+			return true, k
+		}
+	}
+	return false, -1
 }
