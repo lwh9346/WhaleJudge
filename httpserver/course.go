@@ -55,8 +55,25 @@ func handleCreateCourseRequest(c *gin.Context) {
 	c.JSON(200, gin.H{"code": 0, "msg": "课程创建成功"})
 }
 
-func handleCourseInfoRequest(c *gin.Context) {
+//CourseInfoRequest 获取课程信息的请求
+type CourseInfoRequest struct {
+	CourseName string `json:"coursename" binding:"required"`
+}
 
+func handleCourseInfoRequest(c *gin.Context) {
+	var cir CourseInfoRequest
+	if c.BindJSON(&cir) != nil {
+		c.JSON(400, gin.H{"code": 1, "msg": "请求格式不正确"})
+		return
+	}
+	if !database.HasKey(courseDB, courseInfoBK, cir.CourseName) {
+		c.JSON(404, gin.H{"code": 1, "msg": "找不到该题目"})
+		return
+	}
+	data := database.GetValue(courseDB, courseInfoBK, cir.CourseName)
+	var ci CourseInfo
+	json.Unmarshal(data, &ci)
+	c.JSON(200, ci)
 }
 
 func handleAddTeacherRequest(c *gin.Context) {
