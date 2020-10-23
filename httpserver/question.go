@@ -61,6 +61,10 @@ func handleAddQuestionRequest(c *gin.Context) {
 		c.JSON(401, gin.H{"code": 1, "msg": "登陆失效，请重新登陆"})
 		return
 	}
+	if len(aqr.Title) > 64 {
+		c.JSON(400, gin.H{"code": 1, "msg": "标题过长，最长64字符"})
+		return
+	}
 	questionName := aqr.Title
 	if database.HasKey(questionDB, questionDescriptionBK, questionName) {
 		c.JSON(400, gin.H{"code": 1, "msg": "该题目名已存在"})

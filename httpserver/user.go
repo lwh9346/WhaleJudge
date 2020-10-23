@@ -95,8 +95,8 @@ func handleRegisterRequest(c *gin.Context) {
 		return
 	}
 	//用户名合法性检验
-	if len(regRequest.Username) == 0 {
-		c.JSON(400, gin.H{"code": 1, "msg": "没有填写用户名"})
+	if len(regRequest.Username) > 64 {
+		c.JSON(400, gin.H{"code": 1, "msg": "用户名过长"})
 		return
 	}
 	ok := true
