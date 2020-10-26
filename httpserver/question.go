@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/gin-gonic/gin"
-	"github.com/lwh9346/WhaleJudger/database"
+	"github.com/lwh9346/WhaleJudge/database"
 )
 
 //QuestionCases 题目数据集

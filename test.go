@@ -8,10 +8,10 @@ import (
 
 	"github.com/xujiajun/nutsdb"
 
-	"github.com/lwh9346/WhaleJudger/docker"
-	"github.com/lwh9346/WhaleJudger/httpserver"
-	"github.com/lwh9346/WhaleJudger/judge"
-	"github.com/lwh9346/WhaleJudger/lang/golang"
+	"github.com/lwh9346/WhaleJudge/docker"
+	"github.com/lwh9346/WhaleJudge/httpserver"
+	"github.com/lwh9346/WhaleJudge/judge"
+	"github.com/lwh9346/WhaleJudge/lang/golang"
 )
 
 //这个包的作用是进行各个模块的测试

@@ -5,7 +5,7 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/lwh9346/WhaleJudger/database"
+	"github.com/lwh9346/WhaleJudge/database"
 	uuid "github.com/satori/go.uuid"
 
 	"github.com/gin-gonic/gin"

@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/lwh9346/WhaleJudger/database"
+	"github.com/lwh9346/WhaleJudge/database"
 
 	"github.com/gin-gonic/gin"
-	"github.com/lwh9346/WhaleJudger/docker"
-	"github.com/lwh9346/WhaleJudger/judge"
-	"github.com/lwh9346/WhaleJudger/lang/golang"
+	"github.com/lwh9346/WhaleJudge/docker"
+	"github.com/lwh9346/WhaleJudge/judge"
+	"github.com/lwh9346/WhaleJudge/lang/golang"
 )
 
 //JudgeRequest 一个测评请求

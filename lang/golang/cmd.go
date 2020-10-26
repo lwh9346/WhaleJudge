@@ -7,9 +7,9 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/lwh9346/WhaleJudger/docker"
+	"github.com/lwh9346/WhaleJudge/docker"
 
-	"github.com/lwh9346/WhaleJudger/iohelper"
+	"github.com/lwh9346/WhaleJudge/iohelper"
 )
 
 func compile(containerName string) string {

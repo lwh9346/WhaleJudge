@@ -33,6 +33,6 @@ Whale Judger目前支持将golang作为答案的语言来做题，未来将支�
 2. 安装golang(>=1.15.2)
 3. 克隆本仓库
 4. 执行`go build`
-5. 执行`WhaleJudger init`以初始化
+5. 执行`WhaleJudge init`以初始化
 6. 编辑配置文件
-7. 执行`WhaleJudger`以运行http服务器
+7. 执行`WhaleJudge`以运行http服务器

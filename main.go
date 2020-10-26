@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/lwh9346/WhaleJudger/httpserver"
+	"github.com/lwh9346/WhaleJudge/httpserver"
 )
 
 func main() {

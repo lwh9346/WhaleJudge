@@ -1,4 +1,4 @@
-module github.com/lwh9346/WhaleJudger
+module github.com/lwh9346/WhaleJudge
 
 go 1.15
 

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/gin-gonic/gin"
-	"github.com/lwh9346/WhaleJudger/database"
+	"github.com/lwh9346/WhaleJudge/database"
 )
 
 //Homework 记录了某次作业的信息
