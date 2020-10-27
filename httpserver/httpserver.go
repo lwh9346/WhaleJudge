@@ -46,6 +46,7 @@ func StartHTTPServer() {
 	//前端
 	r.Static("/demo", "./demo")
 	r.Static("/dist", "./demo/dist")
+	r.StaticFile("/favicon.ico", "./demo/favicon.ico")
 	//演示部分
 	r.POST("/demo", handleDemoRequest)
 	//测评部分
