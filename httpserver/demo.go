@@ -4,6 +4,8 @@ import (
 	"os/exec"
 	"time"
 
+	"github.com/lwh9346/WhaleJudge/lang/python"
+
 	"github.com/lwh9346/WhaleJudge/lang/cpp"
 
 	"github.com/gin-gonic/gin"
@@ -31,6 +33,9 @@ func handleDemoRequest(c *gin.Context) {
 		defer docker.KillAndRemoveContainer(containerName)
 	case "cpp":
 		errInfo, args = cpp.Prepare(dr.SourceCode, containerName)
+		defer docker.KillAndRemoveContainer(containerName)
+	case "python":
+		errInfo, args = python.Prepare(dr.SourceCode, containerName)
 		defer docker.KillAndRemoveContainer(containerName)
 	default:
 		c.JSON(200, gin.H{"code": 1, "msg": "不支持的语言类型"})
