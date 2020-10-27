@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/lwh9346/WhaleJudge/lang/cpp"
+
 	"github.com/lwh9346/WhaleJudge/database"
 
 	"github.com/gin-gonic/gin"
@@ -47,6 +49,9 @@ func handleJudgeRequest(c *gin.Context) {
 	switch request.Language {
 	case "go":
 		errInfo, args = golang.Prepare(request.SourceCode, containerName)
+		defer docker.KillAndRemoveContainer(containerName)
+	case "cpp":
+		errInfo, args = cpp.Prepare(request.SourceCode, containerName)
 		defer docker.KillAndRemoveContainer(containerName)
 	default:
 		c.JSON(400, gin.H{"code": 1, "msg": []string{"不支持的语言类型"}})
