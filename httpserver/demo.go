@@ -28,7 +28,7 @@ func handleDemoRequest(c *gin.Context) {
 		errInfo, args = golang.Prepare(dr.SourceCode, containerName)
 		defer docker.KillAndRemoveContainer(containerName)
 	default:
-		c.JSON(400, gin.H{"code": 1, "msg": "不支持的语言类型"})
+		c.JSON(200, gin.H{"code": 1, "msg": "不支持的语言类型"})
 		return
 	}
 	if errInfo != "" {

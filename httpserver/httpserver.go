@@ -43,6 +43,9 @@ func StartHTTPServer() {
 	r := gin.Default()
 	r.Use(cors())
 	//添加服务
+	//前端
+	r.Static("/demo", "./demo")
+	r.Static("/dist", "./demo/dist")
 	//演示部分
 	r.POST("/demo", handleDemoRequest)
 	//测评部分
